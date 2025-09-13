@@ -17,9 +17,9 @@ S_BOX = np.array([ #tabela S-Box
     0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
     0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
     0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16
-    ], dtype=np.uint8)
+], dtype=np.uint8)
 
-INV_S_BOX = [ #Tabela dê inversão da S-BOX
+INV_S_BOX = np.array([ #Tabela dê inversão da S-BOX
     0x52,0x09,0x6A,0xD5,0x30,0x36,0xA5,0x38,0xBF,0x40,0xA3,0x9E,0x81,0xF3,0xD7,0xFB,
     0x7C,0xE3,0x39,0x82,0x9B,0x2F,0xFF,0x87,0x34,0x8E,0x43,0x44,0xC4,0xDE,0xE9,0xCB,
     0x54,0x7B,0x94,0x32,0xA6,0xC2,0x23,0x3D,0xEE,0x4C,0x95,0x0B,0x42,0xFA,0xC3,0x4E,
@@ -36,12 +36,29 @@ INV_S_BOX = [ #Tabela dê inversão da S-BOX
     0x60,0x51,0x7F,0xA9,0x19,0xB5,0x4A,0x0D,0x2D,0xE5,0x7A,0x9F,0x93,0xC9,0x9C,0xEF,
     0xA0,0xE0,0x3B,0x4D,0xAE,0x2A,0xF5,0xB0,0xC8,0xEB,0xBB,0x3C,0x83,0x53,0x99,0x61,
     0x17,0x2B,0x04,0x7E,0xBA,0x77,0xD6,0x26,0xE1,0x69,0x14,0x63,0x55,0x21,0x0C,0x7D
-]
+], dtype=np.uint8)
 
 
 RCON = [
     0x00,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36
 ]
+
+
+MIX_COL_MATRIX = np.array([
+    [2, 3, 1, 1],
+    [1, 2, 3, 1],
+    [1, 1, 2, 3],
+    [3, 1, 1, 2]
+], dtype=np.uint8)
+
+
+INV_MIX_COL_MATRIX = np.array([
+    [14, 11, 13, 9],
+    [9, 14, 11, 13],
+    [13, 9, 14, 11],
+    [11, 13, 9, 14]
+], dtype=np.uint8)
+
 
 def expandir_chave(chave):
     assert len(chave) == 16
@@ -76,7 +93,49 @@ def expandir_chave(chave):
     
     return chaves_expandidas
         
-    
+
+def gmul(a, b):
+   # Multiplicação em GF(2^8)
+    res = 0
+    for i in range(8):
+        if b & 1:
+            res ^= a
+        hi_bit = a & 0x80
+        a = (a << 1) & 0xFF
+        if hi_bit:
+            a ^= 0x1B
+        b >>= 1
+    return res
+
+
+def mix_colunas(state):
+    for i in range(4):
+        col = state[:, i]
+        state[:, i] = [
+            gmul(col[0], MIX_COL_MATRIX[row, 0]) ^
+            gmul(col[1], MIX_COL_MATRIX[row, 1]) ^
+            gmul(col[2], MIX_COL_MATRIX[row, 2]) ^
+            gmul(col[3], MIX_COL_MATRIX[row, 3])
+            for row in range(4)
+        ]
+    return state
+
+
+def inv_mix_colunas(state):
+    for i in range(4):
+        col = state[:, i]
+        state[:, i] = [
+            gmul(col[0], INV_MIX_COL_MATRIX[row, 0]) ^
+            gmul(col[1], INV_MIX_COL_MATRIX[row, 1]) ^
+            gmul(col[2], INV_MIX_COL_MATRIX[row, 2]) ^
+            gmul(col[3], INV_MIX_COL_MATRIX[row, 3])
+            for row in range(4)
+        ]
+    return state
+
+
+
+
 
 def criptografar(texto, chave):
     # Inicialização
@@ -105,21 +164,26 @@ def criptografar(texto, chave):
         for j in range(4):
             estado[j] = np.roll(estado[j], -j)
 
-            # Mix de colunas (A ser feito)
+        # Mix de colunas
+        estado = mix_colunas(estado)
             
-            # Adicionar roundkey
-            estado = np.bitwise_xor(estado, chaves_rodadas[i])
+        # Adicionar roundkey
+        estado = np.bitwise_xor(estado, chaves_rodadas[i])
 
     # Rodada final
     # Substituição dos bytes
     estado[:] = S_BOX[estado]
+    
     # Deslocamento das linhas
     for j in range(4):
         estado[j] = np.roll(estado[j], -j)
+        
     # Adicionar roundkey
     estado = np.bitwise_xor(estado, chaves_rodadas[num_rodadas])
     
     return bytes(estado)
+
+
 
 def descriptografar(texto, chave):
     #Inicialização
@@ -144,18 +208,25 @@ def descriptografar(texto, chave):
         #Inverte o deslocamento das linhas
         for j in range(4):
             estado[j] = np.roll(estado[j], j)
+            
         #Inverte a substituição de bytes da S_BOX
         estado[:] = INV_S_BOX[estado]
+        
         #Adição da roundkey 
         estado = np.bitwise_xor(estado, chaves_rodadas[i])
+        
         #Inversão do MIX de Colunas (A ser feito)
+        estado = inv_mix_colunas(estado)
+
     
     #Ultima rodada
     #Inverte o deslocamento das linhas
     for i in range(4):
         estado[i] = np.roll(estado[i], i)
+        
     #Inverte a substituição de bytes da S_BOX
     estado[:] = INV_S_BOX[estado]
+    
     #Adição da roundkey 
     estado = np.bitwise_xor(estado, chaves_rodadas[0])
 
@@ -167,16 +238,16 @@ def descriptografar(texto, chave):
 
 
 def main():
-    texto = input("Insira a mensagem:")
-    chave = input("Insira a chave:")
-
+    texto = input("Insira a mensagem: ")
+    chave = input("Insira a chave: ")
+    
+    mensagem_criptografada = criptografar(texto, chave)
     print("Mensagem criptografada:")
-    criptografar(texto, chave)
-
+    print(mensagem_criptografada)
+    
+    mensagem_descriptografada = descriptografar(mensagem_criptografada, chave)
     print("Mensagem descriptografada:")
-    descriptografar(texto, chave)
-
-
+    print(mensagem_descriptografada)
     
 
 if __name__ == "__main__":
