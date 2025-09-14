@@ -4,7 +4,7 @@
 
 * Anne Mari Suenaga Sakai – RA: 822304  
 * Felipe Jun Nishitani – RA: 822353 
-* Lucas Pereira Goes – RA: 822485 
+* Lucas Pereira Goes – RA: 822938 
 
 ---
 
@@ -18,11 +18,15 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
 ## Como Executar
 1. **Certifique-se de que você tem o Python e o NumPy instalados.**
     * Para instalar a biblioteca NumPy, utilize o pip:
+        ```sh
         pip install numpy
+        ```
 2. **Salve o código do projeto em um arquivo, por exemplo, AES.py.**
 3. **Execute o script através do terminal:**
+    ```sh
     python AES.py
-O programa solicitará a mensagem a ser criptografada e a chave.
+    ```
+4. **Siga as instruções:** O programa solicitará a mensagem a ser criptografada e a chave.
 
 # Importante:
 
@@ -41,9 +45,9 @@ O programa solicitará a mensagem a ser criptografada e a chave.
 
 ## Estrutura do Código
 * **main():** Controla a interface com o usuário, captura as entradas e exibe os resultados.
-* **criptografar():** Orquestra o processo de cifragem.
-* **descriptografar():** Orquestra o processo de decifragem.
-* **expandir_chave():** Implementa o "Key Schedule" do AES para gerar as chaves de cada rodada.
+* **criptografar():** Realiza o processo de cifragem.
+* **descriptografar():** Realiza o processo de decifragem.
+* **expandir_chave():** Gera as chaves de cada rodada.
 * **mix_colunas() / inv_mix_colunas():** Realizam a transformação de embaralhamento de colunas e sua inversa.
 * **gmul():** Função auxiliar para a multiplicação no corpo finito GF(2^8), necessária para o MixColumns.
 * **Constantes:** S_BOX, INV_S_BOX, RCON, MIX_COL_MATRIX, INV_MIX_COL_MATRIX armazenam as tabelas e matrizes fixas usadas pelo algoritmo.
