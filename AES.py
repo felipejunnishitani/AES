@@ -61,6 +61,7 @@ INV_MIX_COL_MATRIX = np.array([
 
 
 def expandir_chave(chave):
+    chave = chave.encode("utf-8") # transforma em bytes
     assert len(chave) == 16
     num_palavras = 4 #Números de palavras presentes na chave
     num_rodadas = 10 #Números de rodadas no AES-128
@@ -73,7 +74,7 @@ def expandir_chave(chave):
     for i in range(num_palavras, 4*(num_rodadas+1)):
         #palavra anterior a atual
         temp = w[i-1][:]
-        if i%num_rodadas == 0:
+        if i%num_palavras == 0:
             #RotWord - rotação dos bytes pala para a esquerda
             temp = temp[1:]+temp[:1]
             #SubWord - substituição de cada byte pelo seu correspondente na S-Box
@@ -81,15 +82,21 @@ def expandir_chave(chave):
             #XOR com o primeir byte
             temp[0] = np.bitwise_xor(temp[0], RCON[i//num_palavras])
         #XOR de temp com a palvavra 4 vezes anterior a atual
-        w[i] = np.bitwise_xor(w[i-num_palavras], temp)
-
+        w[i] = list(np.bitwise_xor(np.array(w[i-num_palavras], dtype=np.uint8), np.array(temp, dtype=np.uint8)))
     #Construção das chaves de rodadas a partir de w
     chaves_expandidas = []
     for i in range(num_rodadas+1):
         aux = []
         for j in range(4):
             aux.extend(w[4*i + j])
-        chaves_expandidas.append(aux)
+        # converte lista de 16 bytes em matriz 4x4 (coluna a coluna)
+        chave_matrix = np.zeros((4, 4), dtype=np.uint8)
+        k = 0
+        for col in range(4):
+            for row in range(4):
+                chave_matrix[row, col] = aux[k]
+                k += 1
+        chaves_expandidas.append(chave_matrix)
     
     return chaves_expandidas
         
@@ -181,15 +188,14 @@ def criptografar(texto, chave):
     # Adicionar roundkey
     estado = np.bitwise_xor(estado, chaves_rodadas[num_rodadas])
     
-    return bytes(estado)
+    return estado.flatten('F').tobytes().hex() # retorna em hexadecimal
 
 
 
 def descriptografar(texto, chave):
     #Inicialização
     num_rodadas = 10
-    texto_bytes = texto.encode('utf-8') # transformação da string em bytes
-    texto_bytes = texto_bytes.ljust(16, b'\x00') # preenche com byte zero
+    texto_bytes = bytes.fromhex(texto) # transforma hex em bytes
 
     estado = np.zeros((4,4), dtype=np.uint8) # inicialização matriz 4x4 de bytes
 
@@ -204,33 +210,34 @@ def descriptografar(texto, chave):
     #Adição do roundkey com a ultima chave
     estado = np.bitwise_xor(estado, chaves_rodadas[num_rodadas])
 
-    for i in range(num_rodadas, 0, -1):
+    # Loop principal (9 a 1)
+    for i in range(num_rodadas-1, 0, -1):
         #Inverte o deslocamento das linhas
-        for j in range(4):
+        for j in range(1, 4):
             estado[j] = np.roll(estado[j], j)
             
         #Inverte a substituição de bytes da S_BOX
-        estado[:] = INV_S_BOX[estado]
+        estado = INV_S_BOX[estado]
         
         #Adição da roundkey 
         estado = np.bitwise_xor(estado, chaves_rodadas[i])
         
-        #Inversão do MIX de Colunas (A ser feito)
+        #Inversão do MIX de Colunas
         estado = inv_mix_colunas(estado)
 
     
     #Ultima rodada
     #Inverte o deslocamento das linhas
-    for i in range(4):
+    for i in range(1, 4):
         estado[i] = np.roll(estado[i], i)
         
     #Inverte a substituição de bytes da S_BOX
-    estado[:] = INV_S_BOX[estado]
+    estado = INV_S_BOX[estado]
     
     #Adição da roundkey 
     estado = np.bitwise_xor(estado, chaves_rodadas[0])
 
-    return bytes(estado)
+    return estado.flatten('F').tobytes().rstrip(b'\x00').decode('utf-8')
 
 
 
