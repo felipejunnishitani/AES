@@ -115,27 +115,14 @@ def gmul(a, b):
     return res
 
 
-def mix_colunas(state):
+def mix_colunas(state, matrix):
     for i in range(4):
         col = state[:, i]
         state[:, i] = [
-            gmul(col[0], MIX_COL_MATRIX[row, 0]) ^
-            gmul(col[1], MIX_COL_MATRIX[row, 1]) ^
-            gmul(col[2], MIX_COL_MATRIX[row, 2]) ^
-            gmul(col[3], MIX_COL_MATRIX[row, 3])
-            for row in range(4)
-        ]
-    return state
-
-
-def inv_mix_colunas(state):
-    for i in range(4):
-        col = state[:, i]
-        state[:, i] = [
-            gmul(col[0], INV_MIX_COL_MATRIX[row, 0]) ^
-            gmul(col[1], INV_MIX_COL_MATRIX[row, 1]) ^
-            gmul(col[2], INV_MIX_COL_MATRIX[row, 2]) ^
-            gmul(col[3], INV_MIX_COL_MATRIX[row, 3])
+            gmul(col[0], matrix[row, 0]) ^
+            gmul(col[1], matrix[row, 1]) ^
+            gmul(col[2], matrix[row, 2]) ^
+            gmul(col[3], matrix[row, 3])
             for row in range(4)
         ]
     return state
@@ -172,7 +159,7 @@ def criptografar(texto, chave):
             estado[j] = np.roll(estado[j], -j)
 
         # Mix de colunas
-        estado = mix_colunas(estado)
+        estado = mix_colunas(estado, MIX_COL_MATRIX) 
             
         # Adicionar roundkey
         estado = np.bitwise_xor(estado, chaves_rodadas[i])
@@ -223,7 +210,7 @@ def descriptografar(texto, chave):
         estado = np.bitwise_xor(estado, chaves_rodadas[i])
         
         #Inversão do MIX de Colunas
-        estado = inv_mix_colunas(estado)
+        estado = mix_colunas(estado, INV_MIX_COL_MATRIX)
 
     
     #Ultima rodada
@@ -245,16 +232,37 @@ def descriptografar(texto, chave):
 
 
 def main():
-    texto = input("Insira a mensagem: ")
-    chave = input("Insira a chave: ")
-    
-    mensagem_criptografada = criptografar(texto, chave)
-    print("Mensagem criptografada:")
-    print(mensagem_criptografada)
-    
-    mensagem_descriptografada = descriptografar(mensagem_criptografada, chave)
-    print("Mensagem descriptografada:")
-    print(mensagem_descriptografada)
+
+    while True:
+        print("c - Criptografar")
+        print("d - Descriptografar")
+        print("s - Sair")
+        escolha = input("Escolha uma opção: ").lower()
+
+        if escolha == "c":
+            texto = input("Insira a mensagem em texto plano: ")
+            chave = input("Insira a chave (16 caracteres): ")
+            
+            mensagem_criptografada = criptografar(texto, chave)
+            print("Mensagem criptografada:")
+            print(mensagem_criptografada)
+
+        elif escolha == "d":
+            texto = input("Insira a mensagem criptografada: ")
+            chave = input("Insira a chave (16 caracteres): ")
+
+            mensagem_descriptografada = descriptografar(texto, chave)
+            print("Mensagem descriptografada:")
+            print(mensagem_descriptografada)
+
+        elif escolha == "s":
+            print("Saindo do programa...")
+            break
+
+        else:
+            print("Opção inválida. Use 'c', 'd' ou 's'.")
+            
+
     
 
 if __name__ == "__main__":
