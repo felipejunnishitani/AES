@@ -35,6 +35,13 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
 
 
 # Entrada do Usuário:
+
+**Escolha**:
+* c: Criptografar mensagem
+* d: Descriptografar mensagem
+* s: Sair do programa
+
+
 **Mensagem**: 
 * Para criptografar: uma string em texto plano.
 * Para descriptografar: um texto em hexadecimal previamente criptografado.
