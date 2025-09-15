@@ -102,31 +102,30 @@ def expandir_chave(chave):
         
 
 def gmul(a, b):
-   # Multiplicação em GF(2^8)
+    # Multiplicação em GF(2^8)
     res = 0
-    for i in range(8):
-        if b & 1:
+    for _ in range(8):  
+        if b & 1:  # se o último bit de b for 1
             res ^= a
-        hi_bit = a & 0x80
-        a = (a << 1) & 0xFF
-        if hi_bit:
+        bit_alto = a & 0x80  # guarda o bit mais significativo de a
+        a = (a << 1) & 0xFF  # desloca a para a esquerda (mantendo 8 bits)
+        if bit_alto:  # se o bit mais alto era 1, aplica a redução módulo x^8 + x^4 + x^3 + x + 1
             a ^= 0x1B
-        b >>= 1
+        b >>= 1  # desloca b para a direita (próximo bit)
     return res
 
 
-def mix_colunas(state, matrix):
+def mix_colunas(estado, matrix):
     for i in range(4):
-        col = state[:, i]
-        state[:, i] = [
-            gmul(col[0], matrix[row, 0]) ^
-            gmul(col[1], matrix[row, 1]) ^
-            gmul(col[2], matrix[row, 2]) ^
-            gmul(col[3], matrix[row, 3])
-            for row in range(4)
+        col = estado[:, i]
+        estado[:, i] = [
+            gmul(col[0], matrix[lin, 0]) ^
+            gmul(col[1], matrix[lin, 1]) ^
+            gmul(col[2], matrix[lin, 2]) ^
+            gmul(col[3], matrix[lin, 3])
+            for lin in range(4)
         ]
-    return state
-
+    return estado
 
 
 
