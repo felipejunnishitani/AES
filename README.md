@@ -48,6 +48,6 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
 * **criptografar():** Realiza o processo de cifragem.
 * **descriptografar():** Realiza o processo de decifragem.
 * **expandir_chave():** Gera as chaves de cada rodada.
-* **mix_colunas() / inv_mix_colunas():** Realizam a transformação de embaralhamento de colunas e sua inversa.
+* **mix_colunas():** Função genérica que aceita qualquer matrix multiplicativa constante 4x4 bytes, que realiza a transformação de embaralhamento de colunas tanto para a criptografia quanto para a descriptografia.
 * **gmul():** Função auxiliar para a multiplicação no corpo finito GF(2^8), necessária para o MixColumns.
 * **Constantes:** S_BOX, INV_S_BOX, RCON, MIX_COL_MATRIX, INV_MIX_COL_MATRIX armazenam as tabelas e matrizes fixas usadas pelo algoritmo.
