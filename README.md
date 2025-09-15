@@ -35,10 +35,10 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
 
 
 # Entrada do Usuário:
-* **Mensagem**: Para criptografar: uma string em texto plano.
+**Mensagem**: 
+* Para criptografar: uma string em texto plano.
 * Para descriptografar: um texto em hexadecimal previamente criptografado.
-
-* **Chave**: Uma string de 16 caracteres. Deve ser a mesma chave usada na criptografia e na descriptografia.
+**Chave**: Uma string de 16 caracteres. Deve ser a mesma chave usada na criptografia e na descriptografia.
 
 # Saída do programa
 * **Texto codificado** em formato hexadecimal.
