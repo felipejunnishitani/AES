@@ -26,7 +26,7 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
     ```sh
     python AES.py
     ```
-4. **Siga as instruções:** O programa solicitará a mensagem a ser criptografada e a chave.
+4. **Siga as instruções:** O programa solicitará a escolha de uma opção, seguida das entradas de acordo com sua escolha.
 
 # Importante:
 
@@ -35,8 +35,10 @@ A implementação utiliza a biblioteca NumPy para facilitar a manipulação das 
 
 
 # Entrada do Usuário:
-* **Mensagem**: Uma string em texto plano.
-* **Chave**: Uma string de 16 caracteres.
+* **Mensagem**: Para criptografar: uma string em texto plano.
+* Para descriptografar: um texto em hexadecimal previamente criptografado.
+
+* **Chave**: Uma string de 16 caracteres. Deve ser a mesma chave usada na criptografia e na descriptografia.
 
 # Saída do programa
 * **Texto codificado** em formato hexadecimal.
